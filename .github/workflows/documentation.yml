@@ -1,0 +1,24 @@
+name: Generate documentation
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Use Node.js 14.x
+      uses: actions/setup-node@v2
+      with:
+        node-version: 14.x
+    - name: Redeploy documentation
+      run: |
+        git config --global user.email "noreply@example.com"
+        git config --global user.name Documentation
+        git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY
+        npm install
+        npm run docs:deploy
