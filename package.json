@@ -1,6 +1,6 @@
 {
-  "name": "xiv-character-cards",
-  "description": "API to create fancy cards for FFXIV characters based on their Lodestone data, hosted at https://ffxiv-character_card.herokuapp.com.",
+  "name": "ffxiv-character-card",
+  "description": "API to create fancy cards for FFXIV characters based on their Lodestone data, hosted at https://ffxiv-character-card-creator.herokuapp.com.",
   "version": "1.4.1",
   "main": "src/create-card.js",
   "repository": "https://github.com/xivapi/FFXIV_Character_Card.git",
