@@ -287,6 +287,11 @@ class CardCreator {
       }
     }
 
+	else {
+      const piece = gearset.MainHand;
+      itemLevelSum += piece.Item.LevelItem;
+    }
+
     // Average item level computation is always for 12 items (was 13)
     // Job stones are ignored
     return this.pad(Math.floor(itemLevelSum / 12), 4);
