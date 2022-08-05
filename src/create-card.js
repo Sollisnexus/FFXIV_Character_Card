@@ -276,7 +276,7 @@ class CardCreator {
     }
 
     // If there is no OffHand, the MainHand item level counts twice
-    if (gearset.Offhand != null && typeof gearset.MainHand != 'number') {
+    if (gearset.OffHand == null && typeof gearset.MainHand != 'number') {
       const piece = gearset.MainHand;
 
       // If this item is a special one, increase the total item level by only 1
@@ -287,14 +287,6 @@ class CardCreator {
       }
     }
 
-	else {
-      if gearset.Offhand != undefined { //( class/job == PLD/WoL/WoH)
-		itemLevelSum += 0
-	  } else{
-		const piece = gearset.MainHand;
-		itemLevelSum += piece.Item.LevelItem;
-	  }
-	}
 
     // Average item level computation is always for 12 items (was 13)
     // Job stones are ignored
