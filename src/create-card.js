@@ -1,5 +1,3 @@
-// noinspection SpellCheckingInspection
-
 const fetch = require('node-fetch');
 const path = require('path');
 const { createCanvas, loadImage, registerFont } = require('canvas');
@@ -60,6 +58,11 @@ const jobsRowText2Y = jobsRowIcon2Y + 45;
 const jobsRowIcon3Y = jobsRowText2Y + jobsRowSpacing;
 const jobsRowText3Y = jobsRowIcon3Y + 45;
 
+const textTitleY = rectStartRow1Y + 34;
+const textServerY = rectStartRow1Y + 104;
+const textNameNoTitleY = rectStartRow1Y + 59;
+const textNameTitleY = rectStartRow1Y + 79;
+
 const textMountMinionY = rectStartRow2Y + 28;
 const iconMountMinionY = rectStartRow2Y + 5;
 
@@ -92,18 +95,6 @@ const languageStrings = {
     mounts: 'Mounts',
     minions: 'Minions',
   },
-  ja: {
-    raceAndClan: '種族/部族',
-    guardian: '守護神',
-    grandCompany: '所属グランドカンパニー',
-    freeCompany: '所属フリーカンパニー',
-    elementalLevel: 'エレメンタルレベル',
-    eurekaLevel: 'LEVEL',
-    resistanceRank: 'レジスタンスランク',
-    bozjaRank: 'LEVEL',
-    mounts: 'マウント',
-    minions: 'ミニオン',
-  },
   de: {
     raceAndClan: 'Volk & Stamm',
     guardian: 'Schutzgott',
@@ -116,21 +107,8 @@ const languageStrings = {
     mounts: 'Reittiere',
     minions: 'Begleiter',
   },
-  fr: {
-    raceAndClan: 'Race & Ethnie',
-    guardian: 'Divinité',
-    grandCompany: 'Grande compagnie',
-    freeCompany: 'Compagnie libre',
-    elementalLevel: 'Niveau élémentaire',
-    eurekaLevel: 'Niveau',
-    resistanceRank: 'Niveau de résistant',
-    bozjaRank: 'Niveau',
-    mounts: 'Montures',
-    minions: 'Mascottes',
-  },
 };
 
-// noinspection JSUnresolvedVariable
 class CardCreator {
   /**
    * Creates a new card creator.
@@ -227,7 +205,7 @@ class CardCreator {
   }
 
   async createCrest(crests) {
-    if (!Array.isArray(crests) || crests.length === 0) return null;
+    if (!Array.isArray(crests) || crests.length == 0) return null;
 
     const canvas = createCanvas(128, 128);
     const ctx = canvas.getContext('2d');
@@ -246,7 +224,7 @@ class CardCreator {
       const [r, g, b] = pixelData.slice(index, index + 3);
 
       // If the pixel is a special grey, change it to be transparent (a = 0)
-      if (r === 64 && g === 64 && b === 64) {
+      if (r == 64 && g == 64 && b == 64) {
         pixelData[index] = 0;
         pixelData[index + 1] = 0;
         pixelData[index + 2] = 0;
@@ -267,7 +245,7 @@ class CardCreator {
       if (key !== 'SoulCrystal') {
 
         // If this item is a special one, increase the total item level by only 1
-        if (this.ilvlFilterIds.includes(piece.Item.ID) === true) {
+        if (this.ilvlFilterIds.includes(piece.Item.ID) == true) {
           itemLevelSum += 1;
         } else {
           itemLevelSum += piece.Item.LevelItem;
@@ -276,21 +254,20 @@ class CardCreator {
     }
 
     // If there is no OffHand, the MainHand item level counts twice
-    if (gearset.OffHand == null && typeof gearset.MainHand != 'number') {
+    if (gearset.Offhand != null && typeof gearset.MainHand != 'number') {
       const piece = gearset.MainHand;
 
       // If this item is a special one, increase the total item level by only 1
-      if (this.ilvlFilterIds.includes(piece.Item.ID) === true) {
+      if (this.ilvlFilterIds.includes(piece.Item.ID) == true) {
         itemLevelSum += 1;
       } else {
         itemLevelSum += piece.Item.LevelItem;
       }
     }
 
-
-    // Average item level computation is always for 12 items (was 13)
+    // Average item level computation is always for 13 items
     // Job stones are ignored
-    return this.pad(Math.floor(itemLevelSum / 12), 4);
+    return this.pad(Math.floor(itemLevelSum / 13), 4);
   }
 
   pad(number, size) {
@@ -327,7 +304,7 @@ class CardCreator {
    * });
    * @returns {Promise<Buffer>} A promise representating the construction of the card's image data.
    */
-  async createCard(characterId, customImage= null, language = 'en') {
+  async createCard(characterId, customImage, language = 'en') {
     const supportedLanguage = xivApiSupportedLanguages.includes(language) ? language : 'en';
     const strings = Object.keys(languageStrings).includes(supportedLanguage) ? languageStrings[supportedLanguage] : languageStrings.en;
 
@@ -351,10 +328,10 @@ class CardCreator {
       .then(response => response.ok ? response : fetch(characterInfoUrl))
       .then(response => response.json());
 
-    const customImagePromise = customImage != null ? await loadImage(customImage) : await Promise.resolve();
+    const customImagePromise = customImage != null ? loadImage(customImage) : Promise.resolve();
     const portraitPromise = dataPromise.then(data => loadImage(data.Character.Portrait));
     const deityPromise = dataPromise.then(data => loadImage(`https://xivapi.com/${data.Character.GuardianDeity.Icon}`));
-    const gcRankPromise = dataPromise.then(data => data.Character.GrandCompany.Company != null ? loadImage(`https://xivapi.com/${data.Character.GrandCompany.Rank.Icon}`) : null);
+    const gcRankPromise = dataPromise.then(data => data.Character.GrandCompany.Company != null && data.Character.GrandCompany.Company.Name != null ? loadImage(`https://xivapi.com/${data.Character.GrandCompany.Rank.Icon}`) : null);
     const fcCrestPromise = dataPromise.then(data => data.Character.FreeCompanyName != null ? this.createCrest(data.FreeCompany.Crest) : null);
 
     // Build canvas and only await data, when actually needed
@@ -397,6 +374,8 @@ class CardCreator {
     ctx.restore(); ctx.save();
 
     // Draw non data dependent images
+    ctx.drawImage(this.images.shadow, 441 - 143, 110, 170, 90); // Item level shadow
+    ctx.drawImage(this.images.ilvl, 441 - 92, 132, 24, 27); // Item level icon
     ctx.drawImage(this.images.mount, 620, iconMountMinionY, 32, 32); // Mount icon
     ctx.drawImage(this.images.minion, 834, iconMountMinionY, 19, 32); // Minion icon
 
@@ -450,6 +429,14 @@ class CardCreator {
       ctx.restore(); ctx.save();
     }
 
+    // Item level
+    {
+      ctx.font = smed;
+      ctx.fillStyle = grey;
+      ctx.fillText(this.getItemLevel(Character.GearSet.Gear), 441 - 65, 155); // Item level
+      ctx.restore(); ctx.save();
+    }
+
     // Mounts & Minions
     {
       let minionsPercentage = "N/A"
@@ -482,7 +469,7 @@ class CardCreator {
       ctx.fillText(`${Character.Race.Name}, ${Character.Tribe.Name}`, 480, infoTextBigStartY); // Race & Clan
       ctx.fillText(Character.GuardianDeity.Name, 480, infoTextBigStartY + infoTextSpacing); // Guardian
 
-      if (Character.GrandCompany.Company != null) {
+      if (Character.GrandCompany.Company != null && Character.GrandCompany.Company.Name != null) {
         ctx.font = small;
         ctx.fillStyle = primary;
         ctx.fillText(strings.grandCompany, 480, infoTextSmallStartY + infoTextSpacing * 2); // Grand Company
@@ -581,6 +568,7 @@ class CardCreator {
       ctx.fillText(ClassJobs[17].Level, rowTextX, jobsRowText2Y); // Summoner/Arcanist
       rowTextX += jobsRowTextSize;
       ctx.fillText(ClassJobs[18].Level, rowTextX, jobsRowText2Y); // Redmage
+      rowTextX += jobsRowTextSize;
       ctx.fillText(ClassJobs[19].Level, 815, jobsRowText2Y); // Bluemage
 
       // Third row
@@ -620,16 +608,6 @@ class CardCreator {
           if (fcCrestIcon != null) ctx.drawImage(fcCrestIcon, fcCrestX, fcCrestY, fcCrestScale, fcCrestScale);
         }),
       ]);
-    }
-
-    // Item level
-    ctx.drawImage(this.images.shadow, 440 - 143, 110, 170, 90); // Item level shadow
-    ctx.drawImage(this.images.ilvl, 440 - 92, 132, 24, 27); // Item level icon
-    {
-      ctx.font = smed;
-      ctx.fillStyle = grey;
-      ctx.fillText(this.getItemLevel(Character.GearSet.Gear), 400, 155); // Item level
-      ctx.restore(); ctx.save();
     }
 
     return canvas.toBuffer();
